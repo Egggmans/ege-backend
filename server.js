@@ -75,37 +75,42 @@ app.post('/contact', (req, res) => {
   const ELEVEN_HOURS = 11 * 60 * 60 * 1000  // milliseconds
 
   setTimeout(async () => {
+  try {
     const contact = db.prepare('SELECT * FROM contacts WHERE id = ?').get(id)
-
-    // Don't notify if already followed up
     if (contact?.followed_up) return
 
     const subs = db.prepare('SELECT * FROM push_subscriptions').all()
-    if (subs.length === 0) return
+    console.log(`⏰ Timer fired for ${name} — ${subs.length} subscription(s) found`)
 
-    const payload = JSON.stringify({
-      title: `Follow up with ${name}`,
-      body:  `You met ${name} 11 hours ago${company ? ` from ${company}` : ''}. Time to reach out! 👋`,
-      url:   '/crm',
-      contactId: id,
-    })
+    if (subs.length === 0) {
+      console.log('❌ No subscriptions — nobody to notify')
+      return
+    }
 
     for (const sub of subs) {
       try {
+        const payload = JSON.stringify({
+          title: `Follow up with ${name}`,
+          body: `You met ${name} 30 seconds ago. Time to reach out! 👋`,
+          url: '/crm',
+          contactId: id,
+        })
         await webpush.sendNotification({
           endpoint: sub.endpoint,
           keys: { p256dh: sub.p256dh, auth: sub.auth }
         }, payload)
-        console.log(`🔔 Sent follow-up notification for ${name}`)
+        console.log(`🔔 Sent notification for ${name}`)
       } catch (err) {
-        console.error('Push error:', err.statusCode, err.message)
-        // Remove expired/invalid subscriptions
+        console.error(`❌ Push failed:`, err.statusCode, err.message, err.body)
         if (err.statusCode === 404 || err.statusCode === 410) {
           db.prepare('DELETE FROM push_subscriptions WHERE endpoint = ?').run(sub.endpoint)
         }
       }
     }
-  }, ELEVEN_HOURS)
+  } catch (err) {
+    console.error('❌ setTimeout crashed:', err)
+  }
+}, ELEVEN_HOURS)
 
   res.json({ success: true, id })
 })
