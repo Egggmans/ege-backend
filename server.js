@@ -72,7 +72,7 @@ app.post('/contact', (req, res) => {
   console.log(`✅ New contact saved: ${name} (${phone})`)
 
   // ── Schedule the 11-hour follow-up notification ──────────
-  const ELEVEN_HOURS = 11 * 60 * 60 * 1000  // milliseconds
+  const ELEVEN_HOURS = 30 * 1000  // 30 seconds for testing
 
   setTimeout(async () => {
   try {
