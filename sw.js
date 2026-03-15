@@ -19,7 +19,7 @@ self.addEventListener('push', (event) => {
       badge:   '/badge-72.png',   // small monochrome icon
       tag:     data.contactId,    // replaces old notification for same contact
       renotify: false,
-      data:    { url: data.url ?? '/crm' },
+      data:    { url: data.url ?? '/' },
       actions: [
         { action: 'open', title: 'Open CRM' },
         { action: 'dismiss', title: 'Dismiss' },
