@@ -92,7 +92,7 @@ app.post('/contact', (req, res) => {
         const payload = JSON.stringify({
           title: `Follow up with ${name}`,
           body: `You met ${name} 30 seconds ago. Time to reach out! 👋`,
-          url: '/crm',
+          url: '/',
           contactId: id,
         })
         await webpush.sendNotification({
